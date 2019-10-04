@@ -45,14 +45,9 @@ FusionEKF::FusionEKF() {
             0, 1, 0, 0,
             0, 0, 1000, 0,
             0, 0, 0, 1000;
-    // set F matrix
+
+    // init F and Q matrix
     ekf_.F_ = MatrixXd(4, 4);
-    ekf_.F_ << 1, 0, 1, 0,
-            0, 1, 0, 1,
-            0, 0, 1, 0,
-            0, 0, 0, 1;
-    // set measurement noise
-    //set the process covariance matrix Q
     ekf_.Q_ = MatrixXd(4, 4);
 
 }
@@ -66,6 +61,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     /**
      * Initialization
      */
+
     if (!is_initialized_) {
         /**
          * TODO: Initialize the state ekf_.x_ with the first measurement.
@@ -74,7 +70,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
          */
 
         // first measurement
-        cout << "EKF: " << endl;
+//        cout << "EKF: " << endl;
         ekf_.x_ = VectorXd(4);
 
         if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
@@ -94,6 +90,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
         // done initializing, no need to predict or update
         is_initialized_ = true;
+        previous_timestamp_ = measurement_pack.timestamp_;
         return;
     }
 
@@ -108,7 +105,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
      * Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
      */
 
-    const auto dt = static_cast<double>(measurement_pack.timestamp_ - previous_timestamp_);
+    // dt in seconds
+    const auto dt = static_cast<double>(measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
     const auto dt_2 = dt * dt;
     const auto dt_3 = dt_2 * dt;
     const auto dt_4 = dt_2 * dt_2;
@@ -127,7 +125,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
             0, 1, 0, dt,
             0, 0, 1, 0,
             0, 0, 0, 1;
-
 
     ekf_.Predict();
 
@@ -153,6 +150,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     }
 
     // print the output
-    cout << "x_ = " << ekf_.x_ << endl;
-    cout << "P_ = " << ekf_.P_ << endl;
+//    cout << "x_ = " << ekf_.x_ << endl;
+//    cout << "P_ = " << ekf_.P_ << endl;
 }

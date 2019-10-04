@@ -10,7 +10,7 @@ using Eigen::VectorXd;
  *   VectorXd or MatrixXd objects with zeros upon creation.
  */
 
-const MatrixXd I = MatrixXd::Identity(2, 2);
+const MatrixXd I = MatrixXd::Identity(4, 4);
 // const VectorXd u = VectorXd::Zero(2);
 
 const Tools tools{};
@@ -59,7 +59,8 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
      * TODO: update the state by using Extended Kalman Filter equations
      */
 
-    VectorXd y = z - H_ * tools.CartesianToPolar(x_);
+    const auto h = tools.CartesianToPolar(x_);
+    VectorXd y = z - h;
 
     // normalize the phi between -pi and pi
     while(y[1] > M_PI){
@@ -69,7 +70,6 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
         y[1] += 2*M_PI;
     }
 
-
     MatrixXd Ht = H_.transpose();
     MatrixXd S = H_ * P_ * Ht + R_;
     MatrixXd Si = S.inverse();
@@ -78,4 +78,10 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
     // new state
     x_ = x_ + (K * y);
     P_ = (I - K * H_) * P_;
+}
+
+std::ostream &operator<<(std::ostream &os, const KalmanFilter &filter) {
+    os << "x_:\n" << filter.x_ << "\nP_:\n" << filter.P_ << "\nF_:\n" << filter.F_ << "\nQ_:\n" << filter.Q_ << "\nH_:\n"
+       << filter.H_ << "\nR_:\n" << filter.R_;
+    return os;
 }
